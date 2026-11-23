@@ -1,5 +1,34 @@
 # 3D Structure from Motion
 
+flowchart TD
+    A[Images] --> B[Feature Detection<br/>SIFT]
+    B --> C[Feature Matching<br/>KNN + Ratio Test]
+    C --> D[Essential Matrix<br/>+ RANSAC]
+    D --> E[Initial Camera Pose<br/>R, t]
+    E --> F[Triangulation]
+    F --> G[Initial 3D Map]
+
+    G --> H[New Image]
+    H --> I[3D-2D Correspondences]
+    I --> J[PnP + RANSAC]
+    J --> K[New Camera Pose]
+    K --> L[Triangulate New Points]
+    L --> M[Grow 3D Map]
+
+    M -->|Next Image| H
+    M -->|All Images Processed| N[Sparse Reconstruction]
+
+    N --> O[Ground Truth Evaluation]
+    O --> P[ATE RMSE: 1.90 cm<br/>Mean Rotation Error: 2.03°]
+
+    P --> Q[Stereo Rectification]
+    Q --> R[Stereo SGBM]
+    R --> S[Disparity Map]
+    S --> T[Left-Right Consistency Check]
+    T --> U[3D Reprojection]
+    U --> V[Dense Point Cloud]
+    V --> W[temple_dense.ply]
+
 ![cover](assets/cover.png)
 
 Incremental SfM on the [Middlebury TempleRing](https://vision.middlebury.edu/mview/data/) dataset (47 images) with Python and OpenCV. Camera poses are estimated with SIFT + PnP, then a dense point cloud is built with stereo matching between neighboring images.
