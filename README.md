@@ -7,31 +7,34 @@ Incremental SfM on the [Middlebury TempleRing](https://vision.middlebury.edu/mvi
 ## Pipeline
 
 ```mermaid
-flowchart TD
-    A[Images] --> B[Feature Detection<br/>SIFT]
-    B --> C[Feature Matching<br/>KNN + Ratio Test]
-    C --> D[Essential Matrix<br/>+ RANSAC]
-    D --> E[Initial Camera Pose<br/>R, t]
-    E --> F[Triangulation]
-    F --> G[Initial 3D Map]
+flowchart LR
+    subgraph S1[Initialization]
+        direction TB
+        A[Images] --> B[SIFT features]
+        B --> C[Matching<br/>KNN + ratio test]
+        C --> D[Essential matrix<br/>+ RANSAC]
+        D --> E[Initial pose<br/>R, t]
+        E --> F[Triangulation]
+    end
 
-    G --> H[New Image]
-    H --> I[3D-2D Correspondences]
-    I --> J[PnP + RANSAC]
-    J --> K[New Camera Pose]
-    K --> L[Triangulate New Points]
-    L --> M[Grow 3D Map]
+    subgraph S2[Incremental SfM]
+        direction TB
+        H[New image] --> I[3D-2D matches]
+        I --> J[PnP + RANSAC]
+        J --> L[Triangulate new points]
+        L -->|next image| H
+        L --> N[Sparse reconstruction<br/>ATE 1.90 cm, rotation 2.03°]
+    end
 
-    M -->|Next Image| H
-    M -->|All Images Processed| N[Sparse Reconstruction]
+    subgraph S3[Dense reconstruction]
+        direction TB
+        Q[Stereo rectification] --> R[SGBM disparity]
+        R --> T[Left-right check]
+        T --> U[Back-projection to 3D]
+        U --> V[temple_dense.ply]
+    end
 
-    N --> O[Ground Truth Evaluation<br/>ATE RMSE 1.90 cm, rotation 2.03°]
-
-    O --> Q[Stereo Rectification]
-    Q --> S[Disparity Map<br/>SGBM]
-    S --> T[Left-Right Consistency Check]
-    T --> U[Back-projection to 3D]
-    U --> V[Dense Point Cloud<br/>temple_dense.ply]
+    S1 --> S2 --> S3
 ```
 
 ![pipeline](assets/pipeline.png)
