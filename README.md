@@ -2,7 +2,7 @@
 
 ![cover](assets/cover.png)
 
-Incremental SfM on the [Middlebury TempleRing](https://vision.middlebury.edu/mview/data/) dataset (47 images) with Python and OpenCV. Camera poses are estimated with SIFT + PnP, then a dense point cloud is built with stereo matching between neighboring images.
+Incremental SfM on the [Middlebury TempleRing](https://vision.middlebury.edu/mview/data/) dataset (47 images) with Python and OpenCV. Camera poses are estimated with SIFT + PnP, then a dense point cloud is built with stereo matching between neighboring images and turned into a mesh with Poisson surface reconstruction.
 
 ## Pipeline
 
@@ -31,7 +31,8 @@ flowchart LR
         Q[Stereo rectification] --> R[SGBM disparity]
         R --> T[Left-right check]
         T --> U[Back-projection to 3D]
-        U --> V[temple_dense.ply]
+        U --> V[Dense point cloud]
+        V --> W[Poisson mesh]
     end
 
     S1 --> S2 --> S3
@@ -41,11 +42,15 @@ flowchart LR
 
 ## Results
 
-All 47 cameras are registered. The camera position error is 1.9 cm (RMSE) on a ring with a radius of about 55 cm. The dense cloud has about 1.8 M points.
+All 47 cameras are registered. The camera position error is 1.9 cm (RMSE) on a ring with a radius of about 55 cm. The dense cloud has about 1.7 M points, the Poisson mesh about 3.5 M triangles.
 
 <p>
   <img src="assets/trajectory.png" width="48%">
   <img src="assets/turntable.gif" width="48%">
+</p>
+
+<p align="center">
+  <img src="assets/mesh.png" width="48%">
 </p>
 
 ORB features were tried first, but the trajectory drifted by more than 1 m. Switching to SIFT fixed it.
@@ -53,7 +58,7 @@ ORB features were tried first, but the trajectory drifted by more than 1 m. Swit
 ## Run
 
 ```
-pip install numpy opencv-python matplotlib
+pip install numpy opencv-python matplotlib open3d
 jupyter notebook sfm.ipynb
 ```
 
