@@ -1,5 +1,12 @@
 # 3D Structure from Motion
 
+![cover](assets/cover.png)
+
+Incremental SfM on the [Middlebury TempleRing](https://vision.middlebury.edu/mview/data/) dataset (47 images) with Python and OpenCV. Camera poses are estimated with SIFT + PnP, then a dense point cloud is built with stereo matching between neighboring images.
+
+## Pipeline
+
+```mermaid
 flowchart TD
     A[Images] --> B[Feature Detection<br/>SIFT]
     B --> C[Feature Matching<br/>KNN + Ratio Test]
@@ -18,35 +25,14 @@ flowchart TD
     M -->|Next Image| H
     M -->|All Images Processed| N[Sparse Reconstruction]
 
-    N --> O[Ground Truth Evaluation]
-    O --> P[ATE RMSE: 1.90 cm<br/>Mean Rotation Error: 2.03°]
+    N --> O[Ground Truth Evaluation<br/>ATE RMSE 1.90 cm, rotation 2.03°]
 
-    P --> Q[Stereo Rectification]
-    Q --> R[Stereo SGBM]
-    R --> S[Disparity Map]
+    O --> Q[Stereo Rectification]
+    Q --> S[Disparity Map<br/>SGBM]
     S --> T[Left-Right Consistency Check]
-    T --> U[3D Reprojection]
-    U --> V[Dense Point Cloud]
-    V --> W[temple_dense.ply]
-
-![cover](assets/cover.png)
-
-Incremental SfM on the [Middlebury TempleRing](https://vision.middlebury.edu/mview/data/) dataset (47 images) with Python and OpenCV. Camera poses are estimated with SIFT + PnP, then a dense point cloud is built with stereo matching between neighboring images.
-
-## Steps
-
-| Step | OpenCV |
-|---|---|
-| Load images and camera matrix K | |
-| SIFT features + ratio test matching | `SIFT_create`, `BFMatcher` |
-| Pose of the first two images | `findEssentialMat`, `recoverPose` |
-| Triangulate the first points | `triangulatePoints` |
-| Add the other images one by one | `solvePnPRansac` |
-| Triangulate new points | `triangulatePoints` |
-| Compare with ground truth | |
-| Rectify neighboring pairs | `stereoRectify`, `remap` |
-| Disparity | `StereoSGBM` |
-| Dense point cloud | `reprojectImageTo3D` |
+    T --> U[Back-projection to 3D]
+    U --> V[Dense Point Cloud<br/>temple_dense.ply]
+```
 
 ![pipeline](assets/pipeline.png)
 
